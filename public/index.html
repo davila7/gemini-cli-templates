@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gemini CLI Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    .metric-item { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+    .metric-name { font-weight: bold; color: #333; }
+    .metric-value { font-size: 18px; color: #007acc; }
+    .metric-meta { font-size: 12px; color: #666; }
+    .tabs { margin: 20px 0; }
+    .tab-button { padding: 10px 20px; margin-right: 10px; border: 1px solid #ddd; background: #f0f0f0; cursor: pointer; }
+    .tab-button.active { background: #007acc; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+  <h1>Gemini CLI Dashboard</h1>
+  
+  <div class="tabs">
+    <button class="tab-button active" onclick="showTab('metrics')">Metrics</button>
+    <button class="tab-button" onclick="showTab('traces')">Traces</button>
+  </div>
+  
+  <div id="metrics" class="tab-content active">
+    <div class="section">
+      <h2>Gemini CLI Metrics</h2>
+      <div id="metrics-content">Loading metrics...</div>
+    </div>
+  </div>
+  
+  <div id="traces" class="tab-content">
+    <div class="section">
+      <h2>Traces</h2>
+      <div id="traces-content"></div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Remove active class from all buttons
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+      
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+      
+      // Load content for the selected tab
+      if (tabName === 'metrics') {
+        fetchMetrics();
+      } else if (tabName === 'traces') {
+        loadTraces();
+      }
+    }
+
+    async function fetchMetrics() {
+      try {
+        const response = await fetch('/api/metrics');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        
+        const metricsDiv = document.getElementById('metrics-content');
+        
+        if (!data.metrics || data.metrics.length === 0) {
+          metricsDiv.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+              <h3>📊 No metrics found</h3>
+              <p>Run some Gemini CLI commands to generate metrics:</p>
+              <code style="background: #f0f0f0; padding: 5px; border-radius: 3px;">
+                echo "Hello World" | gemini --model gemini-2.5-flash
+              </code>
+              <br><br>
+              <button onclick="fetchMetrics()" style="padding: 8px 16px; background: #007acc; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                Refresh Metrics
+              </button>
+            </div>
+          `;
+          return;
+        }
+        
+        let html = `<div style="margin-bottom: 15px;">
+          <strong>Total metrics:</strong> ${data.total} 
+          <button onclick="fetchMetrics()" style="float: right; padding: 5px 10px; background: #007acc; color: white; border: none; border-radius: 3px; cursor: pointer;">Refresh</button>
+        </div>`;
+        
+        // Group metrics by name
+        const metricsByName = {};
+        data.metrics.forEach(metric => {
+          if (!metricsByName[metric.name]) {
+            metricsByName[metric.name] = [];
+          }
+          metricsByName[metric.name].push(metric);
+        });
+        
+        // Display metrics
+        for (const [name, metrics] of Object.entries(metricsByName)) {
+          // Group by unique attribute combinations
+          const uniqueMetrics = [];
+          metrics.forEach(metric => {
+            const key = JSON.stringify(metric.attributes || {});
+            if (!uniqueMetrics.find(m => JSON.stringify(m.attributes || {}) === key)) {
+              uniqueMetrics.push(metric);
+            }
+          });
+          
+          html += `<div style="margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">`;
+          html += `<h3 style="margin: 0 0 10px 0; color: #333;">${name}</h3>`;
+          html += `<p style="margin: 0 0 15px 0; color: #666; font-size: 14px;">${metrics[0].description}</p>`;
+          
+          // Show each unique metric variant
+          uniqueMetrics.forEach(metric => {
+            const attrs = metric.attributes || {};
+            let attributeText = '';
+            
+            // Build attribute display
+            Object.keys(attrs).forEach(key => {
+              if (key !== 'sessionId') {
+                attributeText += `<span style="background: #e8f4fd; padding: 2px 6px; margin: 2px; border-radius: 3px; font-size: 12px;">${key}: ${attrs[key]}</span> `;
+              }
+            });
+            
+            html += `
+              <div class="metric-item" style="margin: 8px 0; padding: 8px; background: #f9f9f9; border-left: 3px solid #007acc;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <div class="metric-value" style="font-size: 24px; font-weight: bold; color: #007acc;">${metric.value.toLocaleString()}</div>
+                    <div style="margin: 5px 0;">${attributeText}</div>
+                  </div>
+                  <div style="text-align: right; font-size: 11px; color: #888;">
+                    Session: ${metric.sessionId.substring(0, 8)}...<br>
+                    ${new Date(metric.timestamp).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          
+          html += `</div>`;
+        }
+        
+        metricsDiv.innerHTML = html;
+        
+      } catch (error) {
+        document.getElementById('metrics-content').innerHTML = `
+          <div style="color: red; padding: 20px; text-align: center;">
+            <h3>❌ Error loading metrics</h3>
+            <p>${error.message}</p>
+            <button onclick="fetchMetrics()" style="padding: 8px 16px; background: #007acc; color: white; border: none; border-radius: 3px; cursor: pointer;">
+              Try Again
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    async function fetchServices() {
+      try {
+        const response = await fetch('/api/services');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data.data || [];
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        return [];
+      }
+    }
+
+    async function fetchTraces(service = '') {
+      try {
+        const url = service ? `/api/traces?service=${service}` : '/api/traces';
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        const tracesDiv = document.getElementById('traces-content');
+        tracesDiv.innerHTML = '';
+
+        if (!data.data || data.data.length === 0) {
+          tracesDiv.innerHTML = `<p>No traces found${service ? ` for ${service} service` : ''}</p>`;
+          return;
+        }
+
+        for (const trace of data.data) {
+          const traceDiv = document.createElement('div');
+          traceDiv.innerHTML = `
+            <h2>Trace ID: ${trace.traceID}</h2>
+            <ul>
+              ${trace.spans.map(span => `<li>${span.operationName} - ${span.duration}μs</li>`).join('')}
+            </ul>
+          `;
+          tracesDiv.appendChild(traceDiv);
+        }
+      } catch (error) {
+        document.getElementById('traces-content').innerHTML = `<p>Error: ${error.message}</p>`;
+      }
+    }
+
+    async function loadTraces() {
+      const services = await fetchServices();
+      const tracesDiv = document.getElementById('traces-content');
+      
+      if (services.length === 0) {
+        tracesDiv.innerHTML = `
+          <div style="margin: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 5px;">
+            <h3>⚠️ No telemetry data found</h3>
+            <p>To see Gemini CLI analytics:</p>
+            <ol>
+              <li><strong>Start Gemini CLI telemetry:</strong><br>
+                  <code>cd /path/to/gemini-cli && npm run telemetry -- --target=local</code></li>
+              <li><strong>Use Gemini CLI:</strong><br>
+                  <code>gemini "Analyze this project"</code></li>
+              <li><strong>Refresh this page</strong></li>
+            </ol>
+            <p><strong>Jaeger UI:</strong> <a href="http://localhost:16686" target="_blank">http://localhost:16686</a></p>
+            <p><em>This dashboard connects to the official Gemini CLI telemetry setup.</em></p>
+          </div>
+        `;
+        return;
+      }
+
+      console.log('Available services:', services);
+      
+      // Show all available services
+      tracesDiv.innerHTML = `
+        <div style="margin: 20px;">
+          <h3>Available Services:</h3>
+          <ul>${services.map(s => `<li>${s}</li>`).join('')}</ul>
+          <p>Fetching traces...</p>
+        </div>
+      `;
+      
+      // Try to find gemini-cli first, then any non-jaeger service, otherwise use first service
+      const targetService = services.find(s => s.includes('gemini')) || 
+                           services.find(s => !s.includes('jaeger')) || 
+                           services[0];
+      
+      console.log('Using service:', targetService);
+      fetchTraces(targetService);
+    }
+
+    // Initialize with metrics tab
+    async function init() {
+      fetchMetrics();
+    }
+
+    init();
+  </script>
+</body>
+</html>

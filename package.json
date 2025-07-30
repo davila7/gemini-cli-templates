@@ -1,0 +1,22 @@
+{
+  "name": "gemini-cli-dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "bin": {
+    "gemini-cli-dashboard": "./bin/gemini-cli-dashboard"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "server": "node index.js",
+    "jaeger": "./scripts/start-jaeger.sh",
+    "cleanup": "docker stop gemini-jaeger 2>/dev/null || true"
+  },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+    "concurrently": "^9.2.0",
+    "express": "^5.1.0",
+      "http-proxy-middleware": "^3.0.5"
+    }
+}
