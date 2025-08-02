@@ -2,6 +2,8 @@
 
 This project provides an analytics dashboard for the Gemini CLI, allowing you to monitor real-time metrics, track token usage, and visualize telemetry data.
 
+<img width="946" height="639" alt="Screenshot 2025-08-02 at 12 17 27" src="https://github.com/user-attachments/assets/3d62830c-8ba0-46e5-ba75-b2f3e16a1b05" />
+
 ## Quick Start
 
 ### Prerequisites
