@@ -23,6 +23,12 @@ CLI tool for configuring and monitoring Gemini CLI
 - **Traces Tab** - Distributed tracing visualization with span timings
 - **Current Session** - Real-time progress tracking for active sessions
 
+### Charts
+- **Token Usage** - Chart of token consumption over time
+- **Session Over Time** - Chart of session duration and frequency
+- **API Response** - Chart of API response times
+- **Tool Usage** - Chart of tool usage and success rates
+
 ## 🚀 Quick Start
 
 ### Prerequisites

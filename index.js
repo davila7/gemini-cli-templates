@@ -81,8 +81,11 @@ app.get('/api/metrics', (req, res) => {
     const lines = logContent.split('\n'); // Read all lines
     
     const metrics = [];
+    const tokenEvents = [];
     let currentMetric = {};
+    let currentLogRecord = {};
     let inDataPoint = false;
+    let inLogRecord = false;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -90,6 +93,31 @@ app.get('/api/metrics', (req, res) => {
         // Start of a new metric
         if (line.includes('Metric #')) {
           currentMetric = { attributes: {} };
+          inDataPoint = false;
+          inLogRecord = false;
+        }
+        
+        // Start of a new log record - first complete any previous tool call record
+        if (line.includes('LogRecord #')) {
+          // Complete previous tool call log record if it exists
+          if (inLogRecord && currentLogRecord.isToolCall && currentLogRecord.sessionId && currentLogRecord.timestamp && currentLogRecord.functionName) {
+            tokenEvents.push({
+              name: 'gemini_cli.tool.usage',
+              description: 'Tool call executed',
+              sessionId: currentLogRecord.sessionId,
+              timestamp: currentLogRecord.timestamp,
+              value: 1,
+              attributes: { 
+                operation: currentLogRecord.functionName,
+                success: currentLogRecord.success ? 'true' : 'false',
+                duration_ms: currentLogRecord.durationMs || 0
+              },
+              type: 'counter'
+            });
+          }
+          
+          currentLogRecord = { attributes: {} };
+          inLogRecord = true;
           inDataPoint = false;
         }
         
@@ -168,10 +196,185 @@ app.get('/api/metrics', (req, res) => {
           }
         }
         
-        // Extract timestamp
-        if (line.includes('Timestamp:') && !line.includes('StartTimestamp')) {
+        // Extract timestamp for metrics
+        if (line.includes('Timestamp:') && !line.includes('StartTimestamp') && !inLogRecord) {
           const timestampMatch = line.match(/Timestamp: (.+) UTC$/);
           if (timestampMatch) currentMetric.timestamp = timestampMatch[1];
+        }
+        
+        // Extract timestamp for log records
+        if (line.includes('Timestamp:') && !line.includes('StartTimestamp') && !line.includes('ObservedTimestamp') && inLogRecord) {
+          const timestampMatch = line.match(/Timestamp: (.+) UTC$/);
+          if (timestampMatch) currentLogRecord.timestamp = timestampMatch[1];
+        }
+        
+        // Parse data from log record attributes
+        if (inLogRecord && line.includes('-> ')) {
+          // Session ID for log records
+          if (line.includes('session.id: Str(')) {
+            const sessionMatch = line.match(/session\.id: Str\(([^)]+)\)/);
+            if (sessionMatch) currentLogRecord.sessionId = sessionMatch[1];
+          }
+          
+          // Event name to identify API response logs
+          if (line.includes('event.name: Str(') && line.includes('gemini_cli.api_response')) {
+            currentLogRecord.isApiResponse = true;
+          }
+          
+          // Event name to identify tool call logs
+          if (line.includes('event.name: Str(') && line.includes('gemini_cli.tool_call')) {
+            currentLogRecord.isToolCall = true;
+          }
+          
+          // Model information
+          if (line.includes('model: Str(')) {
+            const modelMatch = line.match(/model: Str\(([^)]+)\)/);
+            if (modelMatch) currentLogRecord.model = modelMatch[1];
+          }
+          
+          // Function name for tool calls
+          if (line.includes('function_name: Str(')) {
+            const funcMatch = line.match(/function_name: Str\(([^)]+)\)/);
+            if (funcMatch) currentLogRecord.functionName = funcMatch[1];
+          }
+          
+          // Duration (context-aware)
+          if (line.includes('duration_ms: Int(')) {
+            const durationMatch = line.match(/duration_ms: Int\((\d+)\)/);
+            if (durationMatch) {
+              const duration = parseInt(durationMatch[1]);
+              if (currentLogRecord.isApiResponse) {
+                currentLogRecord.apiDurationMs = duration;
+              } else if (currentLogRecord.isToolCall) {
+                currentLogRecord.durationMs = duration;
+              }
+            }
+          }
+          
+          // Success status for tool calls
+          if (line.includes('success: Bool(')) {
+            const successMatch = line.match(/success: Bool\(([^)]+)\)/);
+            if (successMatch) currentLogRecord.success = successMatch[1] === 'true';
+          }
+          
+          // Token counts
+          if (line.includes('input_token_count: Int(')) {
+            const tokenMatch = line.match(/input_token_count: Int\((\d+)\)/);
+            if (tokenMatch) currentLogRecord.inputTokens = parseInt(tokenMatch[1]);
+          }
+          
+          if (line.includes('output_token_count: Int(')) {
+            const tokenMatch = line.match(/output_token_count: Int\((\d+)\)/);
+            if (tokenMatch) currentLogRecord.outputTokens = parseInt(tokenMatch[1]);
+          }
+          
+          if (line.includes('cached_content_token_count: Int(')) {
+            const tokenMatch = line.match(/cached_content_token_count: Int\((\d+)\)/);
+            if (tokenMatch) currentLogRecord.cachedTokens = parseInt(tokenMatch[1]);
+          }
+          
+          if (line.includes('thoughts_token_count: Int(')) {
+            const tokenMatch = line.match(/thoughts_token_count: Int\((\d+)\)/);
+            if (tokenMatch) currentLogRecord.thoughtsTokens = parseInt(tokenMatch[1]);
+          }
+          
+          if (line.includes('total_token_count: Int(')) {
+            const tokenMatch = line.match(/total_token_count: Int\((\d+)\)/);
+            if (tokenMatch) currentLogRecord.totalTokens = parseInt(tokenMatch[1]);
+          }
+        }
+        
+        
+        // Complete log record and extract token metrics
+        if (inLogRecord && currentLogRecord.isApiResponse && currentLogRecord.sessionId && currentLogRecord.timestamp) {
+          if (currentLogRecord.inputTokens !== undefined) {
+            tokenEvents.push({
+              name: 'gemini_cli.token.usage',
+              description: 'Input tokens used in API call',
+              sessionId: currentLogRecord.sessionId,
+              timestamp: currentLogRecord.timestamp,
+              value: currentLogRecord.inputTokens,
+              attributes: { type: 'input', model: currentLogRecord.model },
+              type: 'counter'
+            });
+          }
+          
+          if (currentLogRecord.outputTokens !== undefined) {
+            tokenEvents.push({
+              name: 'gemini_cli.token.usage',
+              description: 'Output tokens generated in API call',
+              sessionId: currentLogRecord.sessionId,
+              timestamp: currentLogRecord.timestamp,
+              value: currentLogRecord.outputTokens,
+              attributes: { type: 'output', model: currentLogRecord.model },
+              type: 'counter'
+            });
+          }
+          
+          if (currentLogRecord.cachedTokens !== undefined) {
+            tokenEvents.push({
+              name: 'gemini_cli.token.usage',
+              description: 'Cached tokens used in API call',
+              sessionId: currentLogRecord.sessionId,
+              timestamp: currentLogRecord.timestamp,
+              value: currentLogRecord.cachedTokens,
+              attributes: { type: 'cached', model: currentLogRecord.model },
+              type: 'counter'
+            });
+          }
+          
+          if (currentLogRecord.thoughtsTokens !== undefined) {
+            tokenEvents.push({
+              name: 'gemini_cli.token.usage',
+              description: 'Thoughts tokens used in API call',
+              sessionId: currentLogRecord.sessionId,
+              timestamp: currentLogRecord.timestamp,
+              value: currentLogRecord.thoughtsTokens,
+              attributes: { type: 'thoughts', model: currentLogRecord.model },
+              type: 'counter'
+            });
+          }
+          
+          // Create API response time metric if we have duration data
+          if (currentLogRecord.apiDurationMs !== undefined) {
+            tokenEvents.push({
+              name: 'gemini_cli.api.response_time',
+              description: 'API response time in milliseconds',
+              sessionId: currentLogRecord.sessionId,
+              timestamp: currentLogRecord.timestamp,
+              value: currentLogRecord.apiDurationMs,
+              attributes: { 
+                model: currentLogRecord.model,
+                duration_ms: currentLogRecord.apiDurationMs
+              },
+              type: 'gauge'
+            });
+          }
+          
+          // Reset for next log record
+          currentLogRecord = { attributes: {} };
+          inLogRecord = false;
+        }
+        
+        // Complete log record and extract tool call metrics
+        if (inLogRecord && currentLogRecord.isToolCall && currentLogRecord.sessionId && currentLogRecord.timestamp && currentLogRecord.functionName) {
+          tokenEvents.push({
+            name: 'gemini_cli.tool.usage',
+            description: 'Tool call executed',
+            sessionId: currentLogRecord.sessionId,
+            timestamp: currentLogRecord.timestamp,
+            value: 1,
+            attributes: { 
+              operation: currentLogRecord.functionName,
+              success: currentLogRecord.success ? 'true' : 'false',
+              duration_ms: currentLogRecord.durationMs || 0
+            },
+            type: 'counter'
+          });
+          
+          // Reset for next log record
+          currentLogRecord = { attributes: {} };
+          inLogRecord = false;
         }
         
         // Extract value and complete the metric
@@ -200,17 +403,39 @@ app.get('/api/metrics', (req, res) => {
       }
     }
     
+    // Complete any remaining tool call log record
+    if (inLogRecord && currentLogRecord.isToolCall && currentLogRecord.sessionId && currentLogRecord.timestamp && currentLogRecord.functionName) {
+      tokenEvents.push({
+        name: 'gemini_cli.tool.usage',
+        description: 'Tool call executed',
+        sessionId: currentLogRecord.sessionId,
+        timestamp: currentLogRecord.timestamp,
+        value: 1,
+        attributes: { 
+          operation: currentLogRecord.functionName,
+          success: currentLogRecord.success ? 'true' : 'false',
+          duration_ms: currentLogRecord.durationMs || 0
+        },
+        type: 'counter'
+      });
+    }
+    
+    // Combine regular metrics with token events
+    const allMetrics = [...metrics, ...tokenEvents];
+    
     // Deduplicate and sort by timestamp
-    const uniqueMetrics = metrics
+    const uniqueMetrics = allMetrics
       .filter((metric, index, arr) => 
-        arr.findIndex(m => m.timestamp === metric.timestamp && m.sessionId === metric.sessionId) === index
+        arr.findIndex(m => m.timestamp === metric.timestamp && m.sessionId === metric.sessionId && m.name === metric.name && JSON.stringify(m.attributes) === JSON.stringify(metric.attributes)) === index
       )
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-      .slice(0, 50); // Last 50 metrics
+      .slice(0, 100); // Last 100 metrics (increased to show more token data)
     
-    // Log token metrics for debugging
+    // Log token and tool metrics for debugging
     const tokenMetrics = uniqueMetrics.filter(m => m.name && m.name.includes('token'));
-    console.log('Token metrics found:', JSON.stringify(tokenMetrics, null, 2));
+    const toolMetrics = uniqueMetrics.filter(m => m.name && m.name.includes('tool'));
+    console.log('Token metrics found:', tokenMetrics.length);
+    console.log('Tool metrics found:', toolMetrics.length);
 
     console.log(`Found ${uniqueMetrics.length} metrics`);
     res.json({ metrics: uniqueMetrics, total: uniqueMetrics.length });

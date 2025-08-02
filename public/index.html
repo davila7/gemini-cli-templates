@@ -127,22 +127,147 @@
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-button active" data-tab="overview">Overview</button>
-      <button class="tab-button" data-tab="traces">Traces</button>
+      <button class="tab-button active" data-tab="analytics">📊 Analytics</button>
+      <button class="tab-button" data-tab="metrics">📋 Metrics Logs</button>
+      <button class="tab-button" data-tab="traces">🔍 Trace Logs</button>
     </div>
     
-    <div id="overview" class="tab-content active">
-      <div id="metrics-content" class="loading">Loading metrics...</div>
-      <div class="metric-card" style="margin-top: 24px;">
-        <div class="metric-header">
-          <div class="metric-title">Token Usage</div>
+    <!-- Analytics Tab -->
+    <div id="analytics" class="tab-content active">
+      <!-- Date Filter -->
+      <div class="date-filter-section">
+        <div class="filter-header">
+          <h3>📅 Time Range Filter</h3>
+          <div class="filter-presets">
+            <button class="filter-preset active" data-range="7">Last 7 days</button>
+            <button class="filter-preset" data-range="30">Last 30 days</button>
+            <button class="filter-preset" data-range="90">Last 90 days</button>
+            <button class="filter-preset" data-range="custom">Custom</button>
+          </div>
         </div>
-        <canvas id="token-chart"></canvas>
+        <div class="date-inputs" id="custom-date-inputs" style="display: none;">
+          <div class="date-input-group">
+            <label>Start Date:</label>
+            <input type="datetime-local" id="start-date" class="date-input">
+          </div>
+          <div class="date-input-group">
+            <label>End Date:</label>
+            <input type="datetime-local" id="end-date" class="date-input">
+          </div>
+          <button class="btn" id="apply-filter">Apply Filter</button>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>🎯 Token Usage Distribution</h3>
+            <div class="chart-summary" id="token-summary">
+              Total: <span id="total-tokens-chart">0</span> tokens
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="token-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>📈 Sessions Over Time</h3>
+            <div class="chart-summary" id="sessions-summary">
+              Total: <span id="total-sessions-chart">0</span> sessions
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="sessions-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>⚡ API Response Times</h3>
+            <div class="chart-summary" id="response-summary">
+              Avg: <span id="avg-response-time">0ms</span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="response-times-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>🔧 Tool Usage</h3>
+            <div class="chart-summary" id="tools-summary">
+              Total: <span id="total-tools-chart">0</span> calls
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="tools-chart"></canvas>
+          </div>
+        </div>
       </div>
     </div>
     
+    <!-- Metrics Logs Tab -->
+    <div id="metrics" class="tab-content">
+      <div class="logs-header">
+        <div class="logs-title">
+          <h3>📋 Metrics Logs</h3>
+          <div class="logs-stats">
+            <span class="status-badge" id="metrics-count">0 metrics</span>
+            <span class="logs-last-update">Last update: <span id="metrics-timestamp">--</span></span>
+          </div>
+        </div>
+        <div class="logs-controls">
+          <button class="btn" id="refresh-metrics">🔄 Refresh</button>
+          <select class="logs-filter" id="metrics-filter">
+            <option value="all">All Metrics</option>
+            <option value="token">Token Metrics</option>
+            <option value="session">Session Metrics</option>
+            <option value="tool">Tool Metrics</option>
+          </select>
+        </div>
+      </div>
+      <div id="metrics-logs-content" class="logs-content">
+        <div class="loading">Loading metrics logs...</div>
+      </div>
+      <div class="pagination" id="metrics-pagination">
+        <button class="btn pagination-btn" id="metrics-prev" disabled>← Previous</button>
+        <span class="pagination-info" id="metrics-page-info">Page 1 of 1</span>
+        <button class="btn pagination-btn" id="metrics-next" disabled>Next →</button>
+      </div>
+    </div>
+    
+    <!-- Trace Logs Tab -->
     <div id="traces" class="tab-content">
-      <div id="traces-content"></div>
+      <div class="logs-header">
+        <div class="logs-title">
+          <h3>🔍 Trace Logs</h3>
+          <div class="logs-stats">
+            <span class="status-badge" id="traces-count">0 traces</span>
+            <span class="logs-last-update">Last update: <span id="traces-timestamp">--</span></span>
+          </div>
+        </div>
+        <div class="logs-controls">
+          <button class="btn" id="refresh-traces">🔄 Refresh</button>
+          <select class="logs-filter" id="traces-filter">
+            <option value="all">All Traces</option>
+            <option value="api">API Calls</option>
+            <option value="tool">Tool Calls</option>
+            <option value="error">Errors</option>
+          </select>
+        </div>
+      </div>
+      <div id="traces-logs-content" class="logs-content">
+        <div class="loading">Loading trace logs...</div>
+      </div>
+      <div class="pagination" id="traces-pagination">
+        <button class="btn pagination-btn" id="traces-prev" disabled>← Previous</button>
+        <span class="pagination-info" id="traces-page-info">Page 1 of 1</span>
+        <button class="btn pagination-btn" id="traces-next" disabled>Next →</button>
+      </div>
     </div>
   </div>
 
