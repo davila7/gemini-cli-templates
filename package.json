@@ -1,7 +1,7 @@
 {
   "name": "gemini-cli-templates",
-  "version": "0.0.2",
-  "description": "CLI tool for configuring and monitoring Gemini CLI",
+  "version": "0.0.3",
+  "description": "Advanced analytics dashboard and monitoring tool for Gemini CLI with real-time metrics, token tracking, and telemetry visualization",
   "bin": {
     "gemini-cli-templates": "./bin/gemini-cli-templates"
   },
@@ -19,7 +19,14 @@
     "telemetry",
     "monitoring",
     "opentelemetry",
-    "templates"
+    "templates",
+    "metrics",
+    "tokens",
+    "visualization",
+    "charts",
+    "jaeger",
+    "ai-monitoring",
+    "api-analytics"
   ],
   "author": "davila7",
   "license": "MIT",

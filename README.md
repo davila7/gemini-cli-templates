@@ -1,33 +1,59 @@
-# Gemini CLI Templates
+# Gemini CLI Analytics Dashboard
 
-CLI tool for configuring and monitoring Gemini CLI
+🚀 **Advanced analytics dashboard and monitoring tool for Gemini CLI** with real-time metrics, comprehensive token tracking, and interactive telemetry visualization.
+
+## ✨ Features
+
+### 🎯 **3-Tab Analytics Interface**
+- **📊 Analytics Tab** - Interactive charts with date filtering (last 7, 30, 90 days, or custom range)
+- **📋 Metrics Logs Tab** - Paginated, filterable metrics logs with detailed breakdowns
+- **🔍 Trace Logs Tab** - Distributed tracing logs with span analysis and filtering
+
+### 📈 **Real-time Metrics Monitoring**
+- **Session Tracking** - Monitor CLI sessions with duration and status
+- **Token Analytics** - Track Input, Output, Thoughts, and Cached tokens
+- **Tool Usage** - Monitor tool calls with success rates and performance
+- **API Performance** - Real-time API response times and success rates
+
+### 🎨 **Interactive Visualizations**
+- **Token Usage Distribution** - Doughnut chart showing token breakdown by type
+- **Sessions Over Time** - Bar chart tracking daily session activity
+- **API Response Times** - Line chart monitoring performance trends
+- **Tool Usage Patterns** - Bar chart analyzing tool execution frequency
+
+### 🛠️ **Advanced Features**
+- **Date Range Filtering** - Analyze data for specific time periods
+- **Real-time Updates** - Auto-refresh every 30 seconds
+- **Data Export** - Download analytics as JSON for further analysis
+- **Responsive Design** - Works on desktop, tablet, and mobile
+- **Dark/Light Theme** - Toggle between themes for comfort
 
 
-## Features
+## 📊 Dashboard Overview
 
-- **Real-time Metrics Monitoring** - Track sessions, tool usage, tokens, and API calls
-- **Distributed Tracing** - Visualize execution flows and performance bottlenecks  
-- **Data Export** - Download analytics data as JSON for further analysis
+### **Main Analytics Cards**
+- **Total Sessions** - Active and historical CLI sessions with weekly trends
+- **Total Tools** - Tool execution count with success rates and performance metrics
+- **Total Tokens** - Comprehensive token tracking (Input, Output, Thoughts, Cached)
+- **Total API Calls** - API usage statistics with average response times and success rates
 
+### **📈 Analytics Tab Features**
+- **Interactive Charts** - 4 real-time visualization charts
+- **Date Range Filters** - Last 7/30/90 days or custom date selection
+- **Token Breakdown** - Detailed analysis of all token types
+- **Performance Trends** - API response time analysis and session patterns
 
-## Dashboard Metrics
+### **📋 Metrics Logs Tab**
+- **Paginated Display** - 20 items per page with navigation
+- **Advanced Filtering** - Filter by All, Token, Session, or Tool metrics
+- **Detailed Information** - Complete metric attributes and timestamps
+- **Color-coded Badges** - Visual categorization of metric types
 
-### Main Analytics Cards
-- **Total Sessions** - Unique Gemini CLI sessions with weekly breakdown
-- **Total Tools** - Number of tools executed with success rates
-- **Total Tokens** - Input/output token consumption tracking
-- **Total API Calls** - Gemini API usage with average response times
-
-### Detailed Views
-- **Overview Tab** - Comprehensive metrics breakdown with session details
-- **Traces Tab** - Distributed tracing visualization with span timings
-- **Current Session** - Real-time progress tracking for active sessions
-
-### Charts
-- **Token Usage** - Chart of token consumption over time
-- **Session Over Time** - Chart of session duration and frequency
-- **API Response** - Chart of API response times
-- **Tool Usage** - Chart of tool usage and success rates
+### **🔍 Trace Logs Tab**
+- **Distributed Tracing** - Jaeger trace visualization
+- **Span Analysis** - Individual operation timing and performance
+- **Filtering Options** - Filter by All, API, Tool, or Error traces
+- **Performance Insights** - Duration analysis and bottleneck identification
 
 ## 🚀 Quick Start
 
