@@ -10,7 +10,7 @@ CLI tool for configuring and monitoring Gemini CLI
 - **Data Export** - Download analytics data as JSON for further analysis
 
 
-## 🎯 Dashboard Metrics
+## Dashboard Metrics
 
 ### Main Analytics Cards
 - **Total Sessions** - Unique Gemini CLI sessions with weekly breakdown
@@ -30,13 +30,17 @@ CLI tool for configuring and monitoring Gemini CLI
 - Node.js 18+ 
 - Docker (for Jaeger telemetry backend)
 
-### 1. Start Gemini CLI Telemetry
+### 1. Install Gemini CLI
 ```bash
-cd /path/to/gemini-cli
-npm run telemetry -- --target=local
+npm install -g @google/gemini-cli
 ```
 
-### 2. Launch the Analytics Dashboard
+### 2. Run Gemini with Telemetry
+```bash
+gemini --telemetry -- --target=local
+```
+
+### 3. Launch the Analytics Dashboard
 ```bash
 # Option A: Using npx (recommended)
 npx gemini-cli-templates@latest --analytics
@@ -47,7 +51,7 @@ npm install
 npm start
 ```
 
-### 3. Generate Telemetry Data
+### 4. Generate Telemetry Data
 ```bash
 # Enable telemetry in your Gemini CLI commands
 gemini --telemetry "Analyze this codebase"
@@ -55,7 +59,7 @@ gemini --telemetry "What files need refactoring?"
 gemini --telemetry "Generate unit tests for this function"
 ```
 
-### 4. View Analytics
+### 5. View Analytics
 Open [http://localhost:3337](http://localhost:3337) to access the dashboard.
 
 ## 🏗️ Architecture
@@ -68,9 +72,6 @@ graph LR
     B -->|Traces & Metrics| C[Jaeger Backend :14317]
     C -->|HTTP API| D[Jaeger UI :16686]
     C -->|REST API| E[Analytics Dashboard :3337]
-    
-    style A fill:#FF1493
-    style E fill:#00CED1
 ```
 
 - **Gemini CLI** sends telemetry via OpenTelemetry Protocol (OTLP)
@@ -99,21 +100,7 @@ OTEL_LOGS_PATH=~/.gemini/tmp       # OpenTelemetry logs location
 PORT=3337                          # Dashboard port
 ```
 
-## 🎨 Customization
-
-The dashboard uses CSS custom properties for easy theming:
-
-```css
-:root {
-  --gemini-pink: #FF1493;
-  --gemini-purple: #8A2BE2;
-  --gemini-blue: #1E90FF;
-  --gemini-cyan: #00CED1;
-  /* Customize colors while maintaining Gemini identity */
-}
-```
-
-## 📊 Data Sources
+## Data Sources
 
 ### Metrics
 - Session tracking and duration
@@ -127,7 +114,7 @@ The dashboard uses CSS custom properties for easy theming:
 - Error tracking and debugging
 - Request/response correlation
 
-## 🤝 Contributing
+## Contributing
 
 This is part of the [Gemini CLI Templates](https://github.com/davila7/gemini-cli-templates) project. Contributions are welcome!
 
@@ -137,14 +124,13 @@ This is part of the [Gemini CLI Templates](https://github.com/davila7/gemini-cli
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🔗 Related Projects
 
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli) - Official Google Gemini CLI
-- [Gemini CLI Templates](https://github.com/davila7/gemini-cli-templates) - Community templates and tools
 - [OpenTelemetry](https://opentelemetry.io/) - Observability framework
 - [Jaeger](https://www.jaegertracing.io/) - Distributed tracing platform
 
