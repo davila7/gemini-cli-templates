@@ -10,6 +10,14 @@ const analyticsMode = args.includes('--analytics');
 // Get the directory where this package is installed
 const packageDir = path.dirname(__dirname);
 
+// Function to open browser
+function openBrowser(url) {
+  const start = (process.platform === 'darwin' ? 'open' : 
+                process.platform === 'win32' ? 'start' : 'xdg-open');
+  
+  spawn(start, [url], { detached: true, stdio: 'ignore' }).unref();
+}
+
 // Show help if no analytics flag
 if (!analyticsMode) {
   console.log('🚀 Gemini CLI Templates');
@@ -32,8 +40,27 @@ console.log('🌐 Dashboard will be available at: http://localhost:3337');
 
 // Start the server from the package directory
 const child = spawn('node', [path.join(packageDir, 'index.js')], {
-  stdio: 'inherit',
+  stdio: 'pipe',
   cwd: packageDir
+});
+
+// Monitor stdout to detect when server is ready
+child.stdout.on('data', (data) => {
+  const output = data.toString();
+  process.stdout.write(output);
+  
+  // When server is ready, open browser
+  if (output.includes('listening on port 3337')) {
+    console.log('🌐 Opening browser...');
+    setTimeout(() => {
+      openBrowser('http://localhost:3337');
+    }, 1000); // Wait 1 second for server to be fully ready
+  }
+});
+
+// Forward stderr
+child.stderr.on('data', (data) => {
+  process.stderr.write(data);
 });
 
 child.on('close', (code) => {

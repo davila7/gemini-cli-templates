@@ -1,6 +1,6 @@
 {
   "name": "gemini-cli-templates",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CLI tool for configuring and monitoring Gemini CLI",
   "bin": {
     "gemini-cli-templates": "./bin/gemini-cli-templates"

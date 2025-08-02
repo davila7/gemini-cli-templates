@@ -58,12 +58,16 @@ app.get('/api/metrics', (req, res) => {
     // Find the latest collector log file
     let logFile = null;
     if (fs.existsSync(geminiTmpPath)) {
-      const tmpDirs = fs.readdirSync(geminiTmpPath);
+      const tmpDirs = fs.readdirSync(geminiTmpPath)
+        .map(dir => ({ name: dir, path: path.join(geminiTmpPath, dir) }))
+        .filter(dir => fs.statSync(dir.path).isDirectory())
+        .sort((a, b) => fs.statSync(b.path).mtime.getTime() - fs.statSync(a.path).mtime.getTime());
+
       for (const dir of tmpDirs) {
-        const collectorLogPath = path.join(geminiTmpPath, dir, 'otel', 'collector.log');
+        const collectorLogPath = path.join(dir.path, 'otel', 'collector.log');
         if (fs.existsSync(collectorLogPath)) {
           logFile = collectorLogPath;
-          break;
+          break; // Found the latest one
         }
       }
     }
@@ -74,7 +78,7 @@ app.get('/api/metrics', (req, res) => {
     
     // Read recent metrics from log
     const logContent = fs.readFileSync(logFile, 'utf8');
-    const lines = logContent.split('\n').slice(-1000); // Last 1000 lines
+    const lines = logContent.split('\n'); // Read all lines
     
     const metrics = [];
     let currentMetric = {};
@@ -128,6 +132,15 @@ app.get('/api/metrics', (req, res) => {
           if (line.includes('type: Str(')) {
             const typeMatch = line.match(/type: Str\(([^)]+)\)/);
             if (typeMatch) currentMetric.attributes.type = typeMatch[1];
+          }
+          
+          // Token type from description
+          if (currentMetric.name && currentMetric.name.includes('gemini.token.count')) {
+            if (currentMetric.description && currentMetric.description.toLowerCase().includes('input')) {
+              currentMetric.attributes.type = 'input';
+            } else if (currentMetric.description && currentMetric.description.toLowerCase().includes('output')) {
+              currentMetric.attributes.type = 'output';
+            }
           }
           
           // Operation (for file operations)
@@ -195,6 +208,10 @@ app.get('/api/metrics', (req, res) => {
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
       .slice(0, 50); // Last 50 metrics
     
+    // Log token metrics for debugging
+    const tokenMetrics = uniqueMetrics.filter(m => m.name && m.name.includes('token'));
+    console.log('Token metrics found:', JSON.stringify(tokenMetrics, null, 2));
+
     console.log(`Found ${uniqueMetrics.length} metrics`);
     res.json({ metrics: uniqueMetrics, total: uniqueMetrics.length });
     
