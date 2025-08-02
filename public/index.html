@@ -27,8 +27,8 @@
   <div class="container">
     <!-- Controls Section -->
     <div style="display: flex; justify-content: flex-end; margin-bottom: 24px; gap: 12px;">
-      <button class="btn" id="refresh-btn">🔄 Refresh</button>
-      <button class="btn" id="export-btn">📊 Export</button>
+      <button class="btn" id="refresh-btn">Refresh</button>
+      <button class="btn" id="export-btn">Export</button>
     </div>
 
     <!-- Main Metrics Grid -->
@@ -127,9 +127,9 @@
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tab-button active" data-tab="analytics">📊 Analytics</button>
-      <button class="tab-button" data-tab="metrics">📋 Metrics Logs</button>
-      <button class="tab-button" data-tab="traces">🔍 Trace Logs</button>
+      <button class="tab-button active" data-tab="analytics">Analytics</button>
+      <button class="tab-button" data-tab="metrics">Metrics Logs</button>
+      <button class="tab-button" data-tab="traces">Trace Logs</button>
     </div>
     
     <!-- Analytics Tab -->
@@ -137,7 +137,7 @@
       <!-- Date Filter -->
       <div class="date-filter-section">
         <div class="filter-header">
-          <h3>📅 Time Range Filter</h3>
+          <h3>Time Range Filter</h3>
           <div class="filter-presets">
             <button class="filter-preset active" data-range="7">Last 7 days</button>
             <button class="filter-preset" data-range="30">Last 30 days</button>
@@ -214,14 +214,14 @@
     <div id="metrics" class="tab-content">
       <div class="logs-header">
         <div class="logs-title">
-          <h3>📋 Metrics Logs</h3>
+          <h3>Metrics Logs</h3>
           <div class="logs-stats">
             <span class="status-badge" id="metrics-count">0 metrics</span>
             <span class="logs-last-update">Last update: <span id="metrics-timestamp">--</span></span>
           </div>
         </div>
         <div class="logs-controls">
-          <button class="btn" id="refresh-metrics">🔄 Refresh</button>
+          <button class="btn" id="refresh-metrics">Refresh</button>
           <select class="logs-filter" id="metrics-filter">
             <option value="all">All Metrics</option>
             <option value="token">Token Metrics</option>
@@ -244,14 +244,14 @@
     <div id="traces" class="tab-content">
       <div class="logs-header">
         <div class="logs-title">
-          <h3>🔍 Trace Logs</h3>
+          <h3>Trace Logs</h3>
           <div class="logs-stats">
             <span class="status-badge" id="traces-count">0 traces</span>
             <span class="logs-last-update">Last update: <span id="traces-timestamp">--</span></span>
           </div>
         </div>
         <div class="logs-controls">
-          <button class="btn" id="refresh-traces">🔄 Refresh</button>
+          <button class="btn" id="refresh-traces">Refresh</button>
           <select class="logs-filter" id="traces-filter">
             <option value="all">All Traces</option>
             <option value="api">API Calls</option>
