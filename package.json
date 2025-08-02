@@ -1,9 +1,9 @@
 {
-  "name": "gemini-cli-dashboard",
+  "name": "gemini-cli-templates",
   "version": "1.0.0",
-  "description": "",
+  "description": "CLI tool for configuring and monitoring Gemini CLI with analytics dashboard",
   "bin": {
-    "gemini-cli-dashboard": "./bin/gemini-cli-dashboard"
+    "gemini-cli-templates": "./bin/gemini-cli-templates"
   },
   "scripts": {
     "start": "node index.js",
@@ -11,12 +11,29 @@
     "jaeger": "./scripts/start-jaeger.sh",
     "cleanup": "docker stop gemini-jaeger 2>/dev/null || true"
   },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "dependencies": {
+  "keywords": [
+    "gemini",
+    "cli",
+    "analytics",
+    "dashboard",
+    "telemetry",
+    "monitoring",
+    "opentelemetry",
+    "templates"
+  ],
+  "author": "davila7",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davila7/gemini-cli-templates.git"
+  },
+  "homepage": "https://github.com/davila7/gemini-cli-templates#readme",
+  "bugs": {
+    "url": "https://github.com/davila7/gemini-cli-templates/issues"
+  },
+  "dependencies": {
     "concurrently": "^9.2.0",
     "express": "^5.1.0",
-      "http-proxy-middleware": "^3.0.5"
-    }
+    "http-proxy-middleware": "^3.0.5"
+  }
 }
