@@ -39,7 +39,7 @@ npm run telemetry -- --target=local
 ### 2. Launch the Analytics Dashboard
 ```bash
 # Option A: Using npx (recommended)
-npx gemini-cli-templates@latest
+npx gemini-cli-templates@latest --analytics
 
 # Option B: Clone and run locally
 git clone https://github.com/davila7/gemini-cli-templates.git

@@ -1,5 +1,54 @@
 #!/usr/bin/env node
 
-const { execSync } = require('child_process');
+const { spawn } = require('child_process');
+const path = require('path');
 
-execSync('npm start', { stdio: 'inherit' });
+// Parse command line arguments
+const args = process.argv.slice(2);
+const analyticsMode = args.includes('--analytics');
+
+// Get the directory where this package is installed
+const packageDir = path.dirname(__dirname);
+
+// Show help if no analytics flag
+if (!analyticsMode) {
+  console.log('🚀 Gemini CLI Templates');
+  console.log('');
+  console.log('Usage:');
+  console.log('  gemini-cli-templates --analytics    Start the analytics dashboard');
+  console.log('');
+  console.log('Options:');
+  console.log('  --analytics    Launch the real-time analytics dashboard');
+  console.log('  --help         Show this help message');
+  console.log('');
+  console.log('Example:');
+  console.log('  npx gemini-cli-templates --analytics');
+  process.exit(0);
+}
+
+console.log('🚀 Starting Gemini CLI Analytics Dashboard...');
+console.log('📍 Package location:', packageDir);
+console.log('🌐 Dashboard will be available at: http://localhost:3337');
+
+// Start the server from the package directory
+const child = spawn('node', [path.join(packageDir, 'index.js')], {
+  stdio: 'inherit',
+  cwd: packageDir
+});
+
+child.on('close', (code) => {
+  if (code !== 0) {
+    console.error(`❌ Dashboard exited with code ${code}`);
+    process.exit(code);
+  }
+});
+
+// Handle process termination
+process.on('SIGINT', () => {
+  console.log('\n👋 Shutting down Gemini CLI Analytics Dashboard...');
+  child.kill('SIGINT');
+});
+
+process.on('SIGTERM', () => {
+  child.kill('SIGTERM');
+});
