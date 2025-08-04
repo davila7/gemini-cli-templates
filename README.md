@@ -4,6 +4,10 @@ This project provides an analytics dashboard for the Gemini CLI, allowing you to
 
 <img width="946" height="639" alt="Screenshot 2025-08-02 at 12 17 27" src="https://github.com/user-attachments/assets/3d62830c-8ba0-46e5-ba75-b2f3e16a1b05" />
 
+## How this works
+
+<img width="954" height="460" alt="GxXDUbBXQAAX9BO" src="https://github.com/user-attachments/assets/ae8e89e8-980c-4778-8e63-3dd65953f999" />
+
 ## Quick Start
 
 ### Prerequisites
